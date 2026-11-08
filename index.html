@@ -26,7 +26,7 @@
       </div>
       <div class="flex-1 w-full text-center sm:text-left">
         <div class="bg-slate-700/60 border border-slate-600 rounded-xl p-3 relative mb-2">
-          <p id="hero-quote" class="text-amber-300 text-sm font-bold">「勇者よ、今日の経験値を積み上げよう！」</p>
+          <p id="hero-quote" class="text-amber-300 text-sm font-bold">「今日の経験値を積み上げよう！」</p>
         </div>
         <h1 class="text-2xl font-black tracking-wide text-white">プレイヤーレベル: <span id="player-level-text" class="text-amber-400">1</span></h1>
       </div>
@@ -200,11 +200,38 @@
       penalty: -2.0   // ペナルティ
     };
 
+    // 勇者の名言・金言30選
     const HERO_QUOTES = [
-      "「勇者よ、今日も経験値を積み上げよう！」",
-      "「本業も回復もしっかりこなせばレベルが上がるぞ！」",
-      "「運動（STR）を少しやって気分転換しないか？」",
-      "「継続こそが最大の武器だ！」"
+      "「千里の道も、一歩の継続から始まる。」",
+      "「今日の小さな積み重ねが、未来の最強の自分を作る。」",
+      "「怠惰な誘惑に負けるな、お前のレベルはまだ上げられる！」",
+      "「休むことも、次の勝利に向けた重要な戦略だ。」",
+      "「Learning is self-denial.」",
+      "「困難なクエストほど、達成した時の経験値は旨い。」",
+      "「昨日の自分を超えること、それが真の冒険者の証だ。」",
+      "「Pretend to be stupid.」",
+      "「汗を流した分だけ、世界は君に微笑みかける。」",
+      "「泥臭い作業こそ、大いなるレベルアップの糧となる。」",
+      "「頭脳を磨き続けろ。知恵はどんな武器よりも強い。」",
+      "「肉体を鍛えよ。強靭な意志は、強靭な肉体に宿る。」",
+      "「小さな一歩が、未来の自由を築く。」",
+      "「睡眠を削るな。最高の回復こそが、明日への最大の攻撃力だ。」",
+      "「Don't show your effort to others.」",
+      "「凡事徹底。当たり前の毎日の継続こそが最大の武器である。」",
+      "「焦る必要はない。ただ、今日やるべきことをこなせばいい。」",
+      "「失敗は経験値。すべての敗北は、次への勝利の布石だ。」",
+      "「選んだ道を正解にするのは、これからの君の行動力だけだ。」",
+      "「Don't talk about the current situation.」",
+      "「タイマーのスタートボタンを押す、その瞬間から奇跡は始まる。」",
+      "「楽な道を選ぶな。痛みのないところに本当の栄光はない。」",
+      "「時間を支配する者が、人生のすべてを制覇する。」",
+      "「どんなに忙しくても、5分の前進は0分より圧倒的に尊い。」",
+      "「Anger is caused by lack of learning.」",
+      "「目先の誘惑を断ち切った夜、君のレベルは一段階跳ね上がる。」",
+      "「記録をつける。それだけで、君は自分の人生の主人公になれる。」",
+      "「試練は君を壊すためではなく、より強靭にするために訪れる。」",
+      "「今日という一日は、二度と手に入らない。」",
+      "「信じろ。毎日の継続は、いつか必ず伝説の景色を見せてくれる。」"
     ];
 
     // --- 累計EXP・スキルレベル計算 ---
@@ -301,21 +328,155 @@
       }).join('');
     }
 
-    // --- 獲得称号・実績描画（獲得済みのみ表示） ---
+    // --- 連続日数や条件判定用の補助関数 ---
+    function checkConsecutiveDays(category, minMinutes, requiredDays) {
+      const uniqueDates = [...new Set(logs.map(l => l.date))].sort();
+      let currentStreak = 0;
+      let maxStreak = 0;
+
+      for (let date of uniqueDates) {
+        const dayTotal = logs
+          .filter(l => l.date === date && l.category === category)
+          .reduce((sum, l) => sum + l.minutes, 0);
+
+        if (dayTotal >= minMinutes) {
+          currentStreak++;
+          if (currentStreak > maxStreak) maxStreak = currentStreak;
+        } else {
+          currentStreak = 0;
+        }
+      }
+      return maxStreak >= requiredDays;
+    }
+
+    function checkDailyRecExceed(targetMinutes) {
+      const dateMap = {};
+      logs.forEach(l => {
+        if (l.category === 'rec') {
+          dateMap[l.date] = (dateMap[l.date] || 0) + l.minutes;
+        }
+      });
+      return Object.values(dateMap).some(mins => mins >= targetMinutes);
+    }
+
+    // --- 100個の称号・実績描画（獲得済みのみ表示） ---
     function renderTrophies(playerLv) {
       const lvs = getSkillLevels();
+      
+      const totalStudyMin = getCategoryTotalEXP('study') / (EXP_RATES.study || 1);
+      const totalWorkoutMin = getCategoryTotalEXP('workout') / (EXP_RATES.workout || 1);
+      const totalSideMin = getCategoryTotalEXP('side') / (EXP_RATES.side || 1);
+      const totalMainMin = getCategoryTotalEXP('main') / (EXP_RATES.main || 0.5);
+      const totalRecMin = getCategoryTotalEXP('rec') / (EXP_RATES.rec || 0.5);
+      const penaltyMinutes = logs.filter(l => l.category === 'penalty').reduce((sum, l) => sum + l.minutes, 0);
+
       const allTrophies = [
-        { name: "初の一歩", icon: "🎖️", desc: "初めてログを保存した", unlocked: logs.length > 0 },
-        { name: "見習い勇者", icon: "🗡️", desc: "プレイヤーLv.3達成", unlocked: playerLv >= 3 },
-        { name: "熟練冒険者", icon: "👑", desc: "プレイヤーLv.10達成", unlocked: playerLv >= 10 },
-        { name: "賢者", icon: "📚", desc: "INT(勉強) Lv.5達成", unlocked: lvs.INT.lv >= 5 },
-        { name: "鉄人", icon: "💪", desc: "STR(運動) Lv.5達成", unlocked: lvs.STR.lv >= 5 },
-        { name: "プロフェッショナル", icon: "💼", desc: "MAIN(本業) Lv.5達成", unlocked: lvs.MAIN.lv >= 5 },
-        { name: "挑戦者", icon: "🚀", desc: "SIDE(副業) Lv.5達成", unlocked: lvs.SIDE.lv >= 5 },
-        { name: "快眠マスター", icon: "🛌", desc: "REC(回復) Lv.5達成", unlocked: lvs.REC.lv >= 5 }
+        { name: "最初の一歩", icon: "🎖️", desc: "初めてログを保存した", unlocked: logs.length > 0 },
+        { name: "駆け出しの冒険者", icon: "🌱", desc: "プレイヤーレベル5達成", unlocked: playerLv >= 5 },
+        { name: "知恵の芽吹き", icon: "📖", desc: "INT(勉強) Lv.5達成", unlocked: lvs.INT.lv >= 5 },
+        { name: "見習いアスリート", icon: "👟", desc: "STR(運動) Lv.5達成", unlocked: lvs.STR.lv >= 5 },
+        { name: "社内の新星", icon: "📋", desc: "MAIN(本業) Lv.5達成", unlocked: lvs.MAIN.lv >= 5 },
+        { name: "商人の卵", icon: "🪙", desc: "SIDE(副業) Lv.5達成", unlocked: lvs.SIDE.lv >= 5 },
+        { name: "休日の賢者", icon: "☕", desc: "REC(回復) Lv.5達成", unlocked: lvs.REC.lv >= 5 },
+        { name: "銅の冒険者", icon: "🥉", desc: "プレイヤーレベル10達成", unlocked: playerLv >= 10 },
+        { name: "知の探求者", icon: "📜", desc: "INT(勉強) Lv.10達成", unlocked: lvs.INT.lv >= 10 },
+        { name: "鉄の肉体", icon: "🛡️", desc: "STR(運動) Lv.10達成", unlocked: lvs.STR.lv >= 10 },
+        { name: "信頼のビジネスパーソン", icon: "💼", desc: "MAIN(本業) Lv.10達成", unlocked: lvs.MAIN.lv >= 10 },
+        { name: "起業家精神", icon: "💡", desc: "SIDE(副業) Lv.10達成", unlocked: lvs.SIDE.lv >= 10 },
+        { name: "熟睡の匠", icon: "🌙", desc: "REC(回復) Lv.10達成", unlocked: lvs.REC.lv >= 10 },
+        { name: "銀の冒険者", icon: "🥈", desc: "プレイヤーレベル30達成", unlocked: playerLv >= 30 },
+        { name: "魔導士の素質", icon: "🔮", desc: "INT(勉強) Lv.30達成", unlocked: lvs.INT.lv >= 30 },
+        { name: "百戦錬磨", icon: "⚔️", desc: "STR(運動) Lv.30達成", unlocked: lvs.STR.lv >= 30 },
+        { name: "ベテラン社員", icon: "🏢", desc: "MAIN(本業) Lv.30達成", unlocked: lvs.MAIN.lv >= 30 },
+        { name: "敏腕実業家", icon: "📈", desc: "SIDE(副業) Lv.30達成", unlocked: lvs.SIDE.lv >= 30 },
+        { name: "夢幻の眠り", icon: "🌌", desc: "REC(回復) Lv.30達成", unlocked: lvs.REC.lv >= 30 },
+        { name: "黄金の冒険者", icon: "🥇", desc: "プレイヤーレベル50達成", unlocked: playerLv >= 50 },
+        { name: "大賢者への道", icon: "🔮", desc: "INT(勉強) Lv.50達成", unlocked: lvs.INT.lv >= 50 },
+        { name: "闘神", icon: "🔥", desc: "STR(運動) Lv.50達成", unlocked: lvs.STR.lv >= 50 },
+        { name: "エグゼクティブ", icon: "👔", desc: "MAIN(本業) Lv.50達成", unlocked: lvs.MAIN.lv >= 50 },
+        { name: "億万の商機", icon: "💎", desc: "SIDE(副業) Lv.50達成", unlocked: lvs.SIDE.lv >= 50 },
+        { name: "神々の休息", icon: "💤", desc: "REC(回復) Lv.50達成", unlocked: lvs.REC.lv >= 50 },
+        { name: "百獣の王", icon: "🦁", desc: "プレイヤーレベル100達成", unlocked: playerLv >= 100 },
+        { name: "全知全能の頭脳", icon: "🧠", desc: "INT(勉強) Lv.100達成", unlocked: lvs.INT.lv >= 100 },
+        { name: "無敵の肉体", icon: "⚡", desc: "STR(運動) Lv.100達成", unlocked: lvs.STR.lv >= 100 },
+        { name: "業界の覇者", icon: "🌐", desc: "MAIN(本業) Lv.100達成", unlocked: lvs.MAIN.lv >= 100 },
+        { name: "大帝国オーナー", icon: "👑", desc: "SIDE(副業) Lv.100達成", unlocked: lvs.SIDE.lv >= 100 },
+        { name: "不滅の生命力", icon: "🌿", desc: "REC(回復) Lv.100達成", unlocked: lvs.REC.lv >= 100 },
+        { name: "星屑の英雄", icon: "🌟", desc: "プレイヤーレベル150達成", unlocked: playerLv >= 150 },
+        { name: "星読みの賢者", icon: "🌠", desc: "INT(勉強) Lv.150達成", unlocked: lvs.INT.lv >= 150 },
+        { name: "超人", icon: "☄️", desc: "STR(運動) Lv.150達成", unlocked: lvs.STR.lv >= 150 },
+        { name: "伝説の経営者", icon: "🏛️", desc: "MAIN(本業) Lv.150達成", unlocked: lvs.MAIN.lv >= 150 },
+        { name: "ワールドビジネス王", icon: "🌍", desc: "SIDE(副業) Lv.150達成", unlocked: lvs.SIDE.lv >= 150 },
+        { name: "悠久の眠り", icon: "🕊️", desc: "REC(回復) Lv.150達成", unlocked: lvs.REC.lv >= 150 },
+        { name: "月面の覇者", icon: "🌕", desc: "プレイヤーレベル200達成", unlocked: playerLv >= 200 },
+        { name: "宇宙の理を知る者", icon: "🌌", desc: "INT(勉強) Lv.200達成", unlocked: lvs.INT.lv >= 200 },
+        { name: "神話級の肉体", icon: "🌋", desc: "STR(運動) Lv.200達成", unlocked: lvs.STR.lv >= 200 },
+        { name: "神域のビジネスマン", icon: "🏙️", desc: "MAIN(本業) Lv.200達成", unlocked: lvs.MAIN.lv >= 200 },
+        { name: "多元宇宙の商人", icon: "🪐", desc: "SIDE(副業) Lv.200達成", unlocked: lvs.SIDE.lv >= 200 },
+        { name: "聖者の休息", icon: "👼", desc: "REC(回復) Lv.200達成", unlocked: lvs.REC.lv >= 200 },
+        { name: "太陽系の守護者", icon: "☀️", desc: "プレイヤーレベル250達成", unlocked: playerLv >= 250 },
+        { name: "アカシックレコード", icon: "📖", desc: "INT(勉強) Lv.2500達成", unlocked: lvs.INT.lv >= 2500 },
+        { name: "創世のファイター", icon: "🌠", desc: "STR(運動) Lv.250達成", unlocked: lvs.STR.lv >= 250 },
+        { name: "次元を超える統率者", icon: "🛸", desc: "MAIN(本業) Lv.250達成", unlocked: lvs.MAIN.lv >= 250 },
+        { name: "万物創造の商会", icon: "🌌", desc: "SIDE(副業) Lv.250達成", unlocked: lvs.SIDE.lv >= 250 },
+        { name: "永遠の生命", icon: "🔮", desc: "REC(回復) Lv.250達成", unlocked: lvs.REC.lv >= 250 },
+        { name: "銀河系チャンピオン", icon: "🛸", desc: "プレイヤーレベル300達成", unlocked: playerLv >= 300 },
+        { name: "無限の知性", icon: "🔮", desc: "INT(勉強) Lv.300達成", unlocked: lvs.INT.lv >= 300 },
+        { name: "次元を超えし肉体", icon: "🌌", desc: "STR(運動) Lv.300達成", unlocked: lvs.STR.lv >= 300 },
+        { name: "全銀河CEO", icon: "🌠", desc: "MAIN(本業) Lv.300達成", unlocked: lvs.MAIN.lv >= 300 },
+        { name: "宇宙規模のトレード", icon: "🪐", desc: "SIDE(副業) Lv.300達成", unlocked: lvs.SIDE.lv >= 300 },
+        { name: "宇宙の安らぎ", icon: "🌌", desc: "REC(回復) Lv.300達成", unlocked: lvs.REC.lv >= 300 },
+        { name: "次元の支配者", icon: "🌀", desc: "プレイヤーレベル400達成", unlocked: playerLv >= 400 },
+        { name: "真理の体得者", icon: "👁️", desc: "INT(勉強) Lv.400達成", unlocked: lvs.INT.lv >= 400 },
+        { name: "神話の戦士", icon: "⚡", desc: "STR(運動) Lv.400達成", unlocked: lvs.STR.lv >= 400 },
+        { name: "次元企業統括", icon: "🏢", desc: "MAIN(本業) Lv.400達成", unlocked: lvs.MAIN.lv >= 400 },
+        { name: "神業の投資家", icon: "💹", desc: "SIDE(副業) Lv.400達成", unlocked: lvs.SIDE.lv >= 400 },
+        { name: "虚空の静寂", icon: "🌌", desc: "REC(回復) Lv.400達成", unlocked: lvs.REC.lv >= 400 },
+        { name: "全知全能の神", icon: "👑", desc: "プレイヤーレベル500達成", unlocked: playerLv >= 500 },
+        { name: "宇宙創世の知恵", icon: "🌌", desc: "INT(勉強) Lv.500達成", unlocked: lvs.INT.lv >= 500 },
+        { name: "創世の拳", icon: "☄️", desc: "STR(運動) Lv.500達成", unlocked: lvs.STR.lv >= 500 },
+        { name: "全次元統治者", icon: "🪐", desc: "MAIN(本業) Lv.500達成", unlocked: lvs.MAIN.lv >= 500 },
+        { name: "全宇宙商業神", icon: "🌠", desc: "SIDE(副業) Lv.500達成", unlocked: lvs.SIDE.lv >= 500 },
+        { name: "究極の安眠", icon: "💤", desc: "REC(回復) Lv.500達成", unlocked: lvs.REC.lv >= 500 },
+        { name: "超越者", icon: "✨", desc: "プレイヤーレベル600達成", unlocked: playerLv >= 600 },
+        { name: "星々を束ねる者", icon: "🌌", desc: "プレイヤーレベル700達成", unlocked: playerLv >= 700 },
+        { name: "銀河の統帥", icon: "🌠", desc: "プレイヤーレベル800達成", unlocked: playerLv >= 800 },
+        { name: "全宇宙の覇王", icon: "👑", desc: "プレイヤーレベル900達成", unlocked: playerLv >= 900 },
+        { name: "伝説のグランドマスター", icon: "🏆", desc: "プレイヤーレベル1000達成", unlocked: playerLv >= 1000 },
+        { name: "勉学の初心者", icon: "⏱️", desc: "勉強時間500分達成", unlocked: totalStudyMin >= 500 },
+        { name: "フィットネス初心者", icon: "🏋️", desc: "運動時間500分達成", unlocked: totalWorkoutMin >= 500 },
+        { name: "副業の挑戦者", icon: "💻", desc: "副業時間500分達成", unlocked: totalSideMin >= 500 },
+        { name: "勉学の達人", icon: "📚", desc: "勉強時間5000分達成", unlocked: totalStudyMin >= 5000 },
+        { name: "スポーツマスター", icon: "🏅", desc: "運動時間5000分達成", unlocked: totalWorkoutMin >= 5000 },
+        { name: "副業のプロ", icon: "📈", desc: "副業時間5000分達成", unlocked: totalSideMin >= 5000 },
+        { name: "知の求道者", icon: "🎓", desc: "勉強時間10000分達成", unlocked: totalStudyMin >= 10000 },
+        { name: "不屈のファイター", icon: "🥊", desc: "運動時間10000分達成", unlocked: totalWorkoutMin >= 10000 },
+        { name: "ビジネスの鬼", icon: "💼", desc: "副業時間10000分達成", unlocked: totalSideMin >= 10000 },
+        { name: "知の怪物", icon: "🧠", desc: "勉強時間20000分達成", unlocked: totalStudyMin >= 20000 },
+        { name: "鋼の肉体保持者", icon: "🦾", desc: "運動時間20000分達成", unlocked: totalWorkoutMin >= 20000 },
+        { name: "副業の巨匠", icon: "🌟", desc: "副業時間20000分達成", unlocked: totalSideMin >= 20000 },
+        { name: "睡眠の守護者", icon: "🛌", desc: "睡眠時間10000分達成", unlocked: totalRecMin >= 10000 },
+        { name: "社畜の鏡", icon: "🏢", desc: "本業時間5000分達成", unlocked: totalMainMin >= 5000 },
+        { name: "夢のなかへ", icon: "💤", desc: "睡眠時間50000分達成", unlocked: totalRecMin >= 50000 },
+        { name: "鉄人社員", icon: "⚙️", desc: "本業時間10000分達成", unlocked: totalMainMin >= 10000 },
+        { name: "睡眠の神", icon: "🌙", desc: "睡眠時間100000分達成", unlocked: totalRecMin >= 100000 },
+        { name: "社畜の神", icon: "👑", desc: "本業時間50000分達成", unlocked: totalMainMin >= 50000 },
+        { name: "永遠の眠り姫", icon: "✨", desc: "睡眠時間150000分達成", unlocked: totalRecMin >= 150000 },
+        { name: "神話級社畜", icon: "🌌", desc: "本業時間100000分達成", unlocked: totalMainMin >= 100000 },
+        { name: "快眠のルーティン", icon: "⏰", desc: "睡眠時間480分以上を10日連続達成", unlocked: checkConsecutiveDays('rec', 480, 10) },
+        { name: "継続の第一歩", icon: "🌱", desc: "勉強時間1時間以上を5日連続達成", unlocked: checkConsecutiveDays('study', 60, 5) },
+        { name: "継続の習慣化", icon: "🌿", desc: "勉強時間1時間以上を10日連続達成", unlocked: checkConsecutiveDays('study', 60, 10) },
+        { name: "継続の鬼", icon: "🔥", desc: "勉強時間1時間以上を30日連続達成", unlocked: checkConsecutiveDays('study', 60, 30) },
+        { name: "誘惑の罠", icon: "🍩", desc: "悪い娯楽時間が600分以上", unlocked: penaltyMinutes >= 600 },
+        { name: "堕落の王", icon: "🛋️", desc: "悪い娯楽時間が6000分以上", unlocked: penaltyMinutes >= 6000 },
+        { name: "怠惰の極み", icon: "💤", desc: "1日の睡眠時間が1000分以上", unlocked: checkDailyRecExceed(1000) },
+        { name: "真の全制覇者", icon: "🏆", desc: "全ての称号をアンロックした", unlocked: false }
       ];
 
-      // 獲得済みの称号のみにフィルタリング
+      const baseTrophies = allTrophies.slice(0, allTrophies.length - 1);
+      const allUnlocked = baseTrophies.every(t => t.unlocked);
+      allTrophies[allTrophies.length - 1].unlocked = allUnlocked;
+
       const unlockedTrophies = allTrophies.filter(t => t.unlocked);
 
       const container = document.getElementById('trophy-container');
