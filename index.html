@@ -15,27 +15,27 @@
     <!-- ヘッダー＆勇者エリア -->
     <header class="bg-slate-800 rounded-2xl p-6 border border-slate-700 shadow-xl flex flex-col sm:flex-row items-center gap-6">
       <div class="relative flex-shrink-0">
-        <!-- ドット絵風勇者アイコン -->
-        <div class="w-20 h-20 bg-amber-500/20 border-2 border-amber-400 rounded-xl flex items-center justify-center text-4xl shadow-lg shadow-amber-500/10 animate-bounce">
-          👾
+        <!-- ドット絵勇者アイコン -->
+        <div class="w-20 h-20 bg-amber-500/20 border-2 border-amber-400 rounded-2xl flex items-center justify-center text-4xl shadow-lg shadow-amber-500/20 animate-pulse">
+          ⚔️
         </div>
-        <span class="absolute -bottom-2 -right-2 bg-amber-500 text-slate-950 font-extrabold text-xs px-2 py-0.5 rounded-full">
+        <span class="absolute -bottom-2 -right-2 bg-amber-500 text-slate-950 font-extrabold text-xs px-2.5 py-0.5 rounded-full shadow">
           Lv.<span id="player-level">1</span>
         </span>
       </div>
       <div class="flex-1 w-full text-center sm:text-left">
         <div class="bg-slate-700/60 border border-slate-600 rounded-xl p-3 relative mb-2">
-          <p id="hero-quote" class="text-amber-300 text-sm font-bold">「今日も冒険（自己研鑽）を始めよう！」</p>
+          <p id="hero-quote" class="text-amber-300 text-sm font-bold">「勇者よ、今日の経験値を積み上げよう！」</p>
         </div>
         <h1 class="text-2xl font-black tracking-wide text-white">プレイヤーレベル: <span id="player-level-text" class="text-amber-400">1</span></h1>
-        <p class="text-xs text-slate-400 mt-1">※全スキルレベルの平均値でレベルアップ</p>
+        <p class="text-xs text-slate-400 mt-1">※全5スキルの平均レベルでレベルアップ</p>
       </div>
     </header>
 
     <!-- ストップウォッチ ＆ 日付指定手動入力 -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       
-      <!-- ストップウォッチカード（今日のリアルタイム計測） -->
+      <!-- ストップウォッチカード -->
       <div class="bg-slate-800 rounded-2xl p-5 border border-slate-700 shadow-lg flex flex-col justify-between">
         <div>
           <h2 class="text-lg font-bold mb-3 text-emerald-400 flex items-center gap-2">
@@ -43,8 +43,8 @@
           </h2>
           <div class="flex gap-2 mb-4">
             <select id="timer-category" class="bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-400 flex-1">
-              <option value="study">勉強 (INT)</option>
-              <option value="workout">運動 (STR)</option>
+              <option value="study">勉強 (INT) [+1.0 EXP/分]</option>
+              <option value="workout">運動 (STR) [+1.5 EXP/分]</option>
             </select>
           </div>
           <div class="text-center py-4 bg-slate-900/60 rounded-xl border border-slate-700/50 mb-4">
@@ -57,7 +57,7 @@
         </div>
       </div>
 
-      <!-- 手動入力カード（過去の日付にも対応） -->
+      <!-- 手動入力カード（日付指定対応） -->
       <div class="bg-slate-800 rounded-2xl p-5 border border-slate-700 shadow-lg flex flex-col justify-between">
         <div>
           <div class="flex justify-between items-center mb-3">
@@ -66,304 +66,41 @@
             </h2>
           </div>
 
-          <!-- 日付選択フォーム -->
-          <div class="mb-4 bg-slate-900/80 p-2.5 rounded-xl border border-indigo-500/30 flex items-center gap-2">
+          <!-- 日付選択 -->
+          <div class="mb-3 bg-slate-900/80 p-2.5 rounded-xl border border-indigo-500/30 flex items-center gap-2">
             <label class="text-xs text-indigo-300 font-bold whitespace-nowrap">対象日付:</label>
             <input type="date" id="input-date" onchange="loadDateLogs()" class="bg-slate-800 border border-slate-600 rounded px-2 py-1 text-sm text-white flex-1 focus:outline-none focus:border-indigo-400">
           </div>
 
-          <!-- 各項目の分数入力 -->
+          <!-- 入力フォーム -->
           <form id="manual-form" class="grid grid-cols-2 gap-2 text-xs">
             <div>
-              <label class="text-slate-400">勉強 (INT):</label>
+              <label class="text-slate-400">勉強 INT (+1.0/分):</label>
               <input type="number" id="input-study" min="0" placeholder="分" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-white">
             </div>
             <div>
-              <label class="text-slate-400">運動 (STR):</label>
+              <label class="text-slate-400">運動 STR (+1.5/分):</label>
               <input type="number" id="input-workout" min="0" placeholder="分" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-white">
             </div>
             <div>
-              <label class="text-slate-400">本業 (MAIN):</label>
-              <input type="number" id="input-main" min="0" placeholder="分 (例: 480)" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-white">
+              <label class="text-slate-400">本業 MAIN (+0.5/分):</label>
+              <input type="number" id="input-main" min="0" placeholder="分" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-white">
             </div>
             <div>
-              <label class="text-slate-400">副業 (SIDE):</label>
-              <input type="number" id="input-side" min="0" placeholder="分 (例: 120)" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-white">
+              <label class="text-slate-400">副業 SIDE (+1.0/分):</label>
+              <input type="number" id="input-side" min="0" placeholder="分" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-white">
             </div>
             <div>
-              <label class="text-slate-400">睡眠・休息 (REC):</label>
-              <input type="number" id="input-rec" min="0" placeholder="分 (例: 420)" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-white">
+              <label class="text-slate-400">睡眠・休息 REC (+0.5/分):</label>
+              <input type="number" id="input-rec" min="0" placeholder="分" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-white">
             </div>
             <div>
               <label class="text-slate-400">交際 (ステータス影響なし):</label>
               <input type="number" id="input-social" min="0" placeholder="分" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-white">
             </div>
             <div class="col-span-2">
-              <label class="text-rose-400 font-semibold">悪い娯楽・SNS (ペナルティ):</label>
+              <label class="text-rose-400 font-semibold">悪い娯楽・SNS (ペナルティ -2.0/分):</label>
               <input type="number" id="input-penalty" min="0" placeholder="分" class="w-full bg-slate-900 border border-rose-900/50 rounded p-1.5 text-white">
             </div>
           </form>
         </div>
-
-        <button onclick="saveManualLogs()" class="w-full mt-4 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2.5 rounded-xl transition">
-          指定した日付で保存・更新
-        </button>
-      </div>
-
-    </div>
-
-    <!-- ダッシュボード：ステータス＆グラフ -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-      <!-- レーダーチャート（5角形ステータス） -->
-      <div class="bg-slate-800 rounded-2xl p-5 border border-slate-700 shadow-lg md:col-span-1 flex flex-col items-center">
-        <h3 class="text-md font-bold text-amber-400 mb-2">累計能力値 (5角形)</h3>
-        <div class="w-full aspect-square max-w-[260px]">
-          <canvas id="radarChart"></canvas>
-        </div>
-      </div>
-
-      <!-- 積み上げ棒グラフ ＆ シェア円グラフ -->
-      <div class="bg-slate-800 rounded-2xl p-5 border border-slate-700 shadow-lg md:col-span-2 flex flex-col gap-4">
-        <div class="flex justify-between items-center border-b border-slate-700 pb-3">
-          <h3 class="text-md font-bold text-slate-200">ダッシュボード分析</h3>
-          <p id="graph-period-label" class="text-xs text-indigo-300 font-medium">選択中の日付を表示中</p>
-        </div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <p class="text-xs text-slate-400 text-center mb-1">時間蓄積 (カテゴリ別)</p>
-            <canvas id="barChart" class="max-h-48"></canvas>
-          </div>
-          <div>
-            <p class="text-xs text-slate-400 text-center mb-1">24時間時間配分シェア</p>
-            <canvas id="pieChart" class="max-h-48"></canvas>
-          </div>
-        </div>
-      </div>
-    </div>
-
-  </div>
-
-  <script>
-    // --- 状態管理 ---
-    let logs = JSON.parse(localStorage.getItem('rpg_time_logs')) || [];
-
-    const HERO_QUOTES = [
-      "「過去の振り返りも立派な冒険の記録だ！」",
-      "「無理せず自分のペースで経験値を貯めよう！」",
-      "「睡眠（REC）もしっかり取って回復しよう！」",
-      "「継続こそが最強のステータス！」"
-    ];
-
-    // --- 各カテゴリの累計EXP計算 ＆ スキルレベル関数 ---
-    function getCategoryTotalMinutes(category) {
-      return logs.filter(l => l.category === category).reduce((sum, l) => sum + l.minutes, 0);
-    }
-
-    function calcSkillLevel(minutes) {
-      if (!minutes || minutes <= 0) return 1;
-      return Math.floor((1 + Math.sqrt(1 + (8 * minutes) / 100)) / 2);
-    }
-
-    function getSkillLevels() {
-      const intLv = calcSkillLevel(getCategoryTotalMinutes('study'));
-      const mainLv = calcSkillLevel(getCategoryTotalMinutes('main'));
-      const sideLv = calcSkillLevel(getCategoryTotalMinutes('side'));
-      const strLv = calcSkillLevel(getCategoryTotalMinutes('workout'));
-      const recLv = calcSkillLevel(getCategoryTotalMinutes('rec'));
-      return { INT: intLv, MAIN: mainLv, SIDE: sideLv, STR: strLv, REC: recLv };
-    }
-
-    function updatePlayerLevel() {
-      const lv = getSkillLevels();
-      const avgLevel = Math.floor((lv.INT + lv.MAIN + lv.SIDE + lv.STR + lv.REC) / 5);
-      document.getElementById('player-level').innerText = avgLevel;
-      document.getElementById('player-level-text').innerText = avgLevel;
-    }
-
-    // --- 日付変更時にその日の既存データをフォームへ読み込む ---
-    function loadDateLogs() {
-      const selectedDate = document.getElementById('input-date').value;
-      const categories = ['study', 'workout', 'main', 'side', 'rec', 'social', 'penalty'];
-
-      categories.forEach(cat => {
-        const inputElem = document.getElementById(`input-${cat}`);
-        if (inputElem) {
-          const totalForCat = logs
-            .filter(l => l.date === selectedDate && l.category === cat)
-            .reduce((sum, l) => sum + l.minutes, 0);
-          inputElem.value = totalForCat > 0 ? totalForCat : '';
-        }
-      });
-
-      document.getElementById('graph-period-label').innerText = `${selectedDate} の内訳を表示中`;
-      initCharts();
-    }
-
-    // --- ストップウォッチ機能 ---
-    let timerInterval = null;
-    let timerSeconds = 0;
-
-    function toggleTimer() {
-      const btn = document.getElementById('btn-start');
-      const saveBtn = document.getElementById('btn-save-timer');
-      if (timerInterval) {
-        clearInterval(timerInterval);
-        timerInterval = null;
-        btn.innerText = '再開';
-        btn.classList.replace('bg-rose-600', 'bg-emerald-600');
-        saveBtn.disabled = false;
-        saveBtn.classList.replace('bg-slate-700', 'bg-amber-600');
-        saveBtn.classList.replace('text-slate-400', 'text-white');
-        saveBtn.classList.remove('cursor-not-allowed');
-      } else {
-        timerInterval = setInterval(() => {
-          timerSeconds++;
-          const h = String(Math.floor(timerSeconds / 3600)).padStart(2, '0');
-          const m = String(Math.floor((timerSeconds % 3600) / 60)).padStart(2, '0');
-          const s = String(timerSeconds % 60).padStart(2, '0');
-          document.getElementById('timer-display').innerText = `${h}:${m}:${s}`;
-        }, 1000);
-        btn.innerText = '一時停止';
-        btn.classList.replace('bg-emerald-600', 'bg-rose-600');
-      }
-    }
-
-    function saveTimerLog() {
-      const category = document.getElementById('timer-category').value;
-      const minutes = Math.max(1, Math.round(timerSeconds / 60));
-      const today = new Date().toISOString().split('T')[0];
-
-      logs.push({ date: today, category: category, minutes: minutes });
-      localStorage.setItem('rpg_time_logs', JSON.stringify(logs));
-
-      // リセット
-      timerSeconds = 0;
-      document.getElementById('timer-display').innerText = '00:00:00';
-      document.getElementById('btn-save-timer').disabled = true;
-      document.getElementById('btn-save-timer').classList.replace('bg-amber-600', 'bg-slate-700');
-      document.getElementById('btn-start').innerText = '開始';
-
-      // 今日が選択されていればフォーム更新
-      if (document.getElementById('input-date').value === today) {
-        loadDateLogs();
-      } else {
-        initCharts();
-        updatePlayerLevel();
-      }
-      alert(`本日分として計測ログ（${minutes}分）を記録しました！`);
-    }
-
-    // --- 日付指定での一括保存・更新 ---
-    function saveManualLogs() {
-      const targetDate = document.getElementById('input-date').value;
-      if (!targetDate) {
-        alert('日付を選択してください。');
-        return;
-      }
-
-      const categories = ['study', 'workout', 'main', 'side', 'rec', 'social', 'penalty'];
-
-      // 該当日の既存ログを一旦削除（上書き更新）
-      logs = logs.filter(l => l.date !== targetDate);
-
-      // 新しい数値を保存
-      categories.forEach(cat => {
-        const val = parseInt(document.getElementById(`input-${cat}`).value);
-        if (val && val > 0) {
-          logs.push({ date: targetDate, category: cat, minutes: val });
-        }
-      });
-
-      localStorage.setItem('rpg_time_logs', JSON.stringify(logs));
-      initCharts();
-      updatePlayerLevel();
-      alert(`${targetDate} の記録を保存・更新しました！`);
-    }
-
-    // --- Chart.js グラフ描画 ---
-    let radarChart, barChart, pieChart;
-
-    function initCharts() {
-      const lvs = getSkillLevels();
-      const targetDate = document.getElementById('input-date').value || new Date().toISOString().split('T')[0];
-
-      // 1. 5角形レーダーチャート
-      const ctxRadar = document.getElementById('radarChart').getContext('2d');
-      if (radarChart) radarChart.destroy();
-      radarChart = new Chart(ctxRadar, {
-        type: 'radar',
-        data: {
-          labels: ['INT(勉強)', 'MAIN(本業)', 'SIDE(副業)', 'STR(運動)', 'REC(回復)'],
-          datasets: [{
-            data: [lvs.INT, lvs.MAIN, lvs.SIDE, lvs.STR, lvs.REC],
-            backgroundColor: 'rgba(245, 158, 11, 0.2)',
-            borderColor: '#f59e0b',
-            pointBackgroundColor: '#f59e0b'
-          }]
-        },
-        options: {
-          plugins: { legend: { display: false } },
-          scales: { r: { min: 0, ticks: { display: false }, grid: { color: '#334155' }, angleLines: { color: '#334155' } } }
-        }
-      });
-
-      // 2. 選択日付の時間シェア円グラフ（その他24時間自動補正含む）
-      const selectedLogs = logs.filter(l => l.date === targetDate);
-      const catMinutes = { study:0, workout:0, main:0, side:0, rec:0, social:0, penalty:0 };
-      selectedLogs.forEach(l => { if (catMinutes[l.category] !== undefined) catMinutes[l.category] += l.minutes; });
-      
-      const loggedTotal = Object.values(catMinutes).reduce((a,b)=>a+b, 0);
-      const otherMinutes = Math.max(0, 1440 - loggedTotal); // 24時間(1440分)補正
-
-      const ctxPie = document.getElementById('pieChart').getContext('2d');
-      if (pieChart) pieChart.destroy();
-      pieChart = new Chart(ctxPie, {
-        type: 'doughnut',
-        data: {
-          labels: ['勉強', '運動', '本業', '副業', '回復', '交際', 'SNS', 'その他'],
-          datasets: [{
-            data: [
-              catMinutes.study, catMinutes.workout, catMinutes.main, 
-              catMinutes.side, catMinutes.rec, catMinutes.social, 
-              catMinutes.penalty, otherMinutes
-            ],
-            backgroundColor: ['#10b981', '#f97316', '#3b82f6', '#8b5cf6', '#06b6d4', '#ec4899', '#f43f5e', '#64748b']
-          }]
-        },
-        options: { plugins: { legend: { display: false } } }
-      });
-
-      // 3. 選択日付の積み上げ棒グラフ
-      const ctxBar = document.getElementById('barChart').getContext('2d');
-      if (barChart) barChart.destroy();
-      barChart = new Chart(ctxBar, {
-        type: 'bar',
-        data: {
-          labels: [targetDate],
-          datasets: [
-            { label: '勉強', data: [catMinutes.study / 60], backgroundColor: '#10b981' },
-            { label: '運動', data: [catMinutes.workout / 60], backgroundColor: '#f97316' },
-            { label: '本業', data: [catMinutes.main / 60], backgroundColor: '#3b82f6' },
-            { label: '副業', data: [catMinutes.side / 60], backgroundColor: '#8b5cf6' },
-            { label: '回復', data: [catMinutes.rec / 60], backgroundColor: '#06b6d4' }
-          ]
-        },
-        options: {
-          scales: { x: { stacked: true }, y: { stacked: true, max: 24 } },
-          plugins: { legend: { display: false } }
-        }
-      });
-    }
-
-    // 初期起動処理
-    window.onload = () => {
-      const today = new Date().toISOString().split('T')[0];
-      document.getElementById('input-date').value = today;
-      document.getElementById('hero-quote').innerText = HERO_QUOTES[Math.floor(Math.random() * HERO_QUOTES.length)];
-      
-      loadDateLogs();
-      updatePlayerLevel();
-    };
-  </script>
-</body>
-</html>
