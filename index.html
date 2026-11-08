@@ -277,6 +277,9 @@
         const expInCurrentLevel = curExp - curLevelReq;
         const reqForNextLevel = nextLevelReq - curLevelReq;
         const progress = Math.min(100, Math.max(0, Math.floor((expInCurrentLevel / reqForNextLevel) * 100))) || 0;
+        
+        // 次のレベルまでの残りEXP計算
+        const remainingExp = Math.max(0, nextLevelReq - curExp);
 
         return `
           <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-700 text-xs flex flex-col justify-between">
@@ -291,17 +294,17 @@
               <div class="w-full bg-slate-800 rounded-full h-1.5 border border-slate-700 overflow-hidden mb-1">
                 <div class="bg-amber-400 h-1.5 rounded-full" style="width: ${progress}%"></div>
               </div>
-              <p class="text-[9px] text-slate-400 text-right">次Lvまで ${progress}%</p>
+              <p class="text-[9px] text-slate-400 text-right">次Lvまであと ${remainingExp} EXP</p>
             </div>
           </div>
         `;
       }).join('');
     }
 
-    // --- 称号・実績描画 ---
+    // --- 獲得称号・実績描画（獲得済みのみ表示） ---
     function renderTrophies(playerLv) {
       const lvs = getSkillLevels();
-      const trophies = [
+      const allTrophies = [
         { name: "初の一歩", icon: "🎖️", desc: "初めてログを保存した", unlocked: logs.length > 0 },
         { name: "見習い勇者", icon: "🗡️", desc: "プレイヤーLv.3達成", unlocked: playerLv >= 3 },
         { name: "熟練冒険者", icon: "👑", desc: "プレイヤーLv.10達成", unlocked: playerLv >= 10 },
@@ -312,15 +315,23 @@
         { name: "快眠マスター", icon: "🛌", desc: "REC(回復) Lv.5達成", unlocked: lvs.REC.lv >= 5 }
       ];
 
+      // 獲得済みの称号のみにフィルタリング
+      const unlockedTrophies = allTrophies.filter(t => t.unlocked);
+
       const container = document.getElementById('trophy-container');
       if (!container) return;
 
-      container.innerHTML = trophies.map(t => `
-        <div class="p-3 rounded-xl border text-xs flex items-center gap-3 ${t.unlocked ? 'bg-slate-700/60 border-amber-500/50 text-slate-200' : 'bg-slate-900/40 border-slate-800 text-slate-600'}">
-          <div class="text-2xl ${t.unlocked ? '' : 'opacity-30'}">${t.icon}</div>
+      if (unlockedTrophies.length === 0) {
+        container.innerHTML = `<p class="text-xs text-slate-500 col-span-full">まだ獲得した称号はありません。冒険を進めて称号を解放しよう！</p>`;
+        return;
+      }
+
+      container.innerHTML = unlockedTrophies.map(t => `
+        <div class="p-3 rounded-xl border text-xs flex items-center gap-3 bg-slate-700/60 border-amber-500/50 text-slate-200 shadow-sm">
+          <div class="text-2xl">${t.icon}</div>
           <div>
-            <p class="font-bold ${t.unlocked ? 'text-amber-300' : 'text-slate-500'}">${t.unlocked ? '' : '🔒 '}${t.name}</p>
-            <p class="text-[10px] ${t.unlocked ? 'text-slate-300' : 'text-slate-600'}">${t.desc}</p>
+            <p class="font-bold text-amber-300">${t.name}</p>
+            <p class="text-[10px] text-slate-300">${t.desc}</p>
           </div>
         </div>
       `).join('');
