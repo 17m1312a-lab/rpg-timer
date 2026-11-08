@@ -15,9 +15,10 @@
     <!-- ヘッダー＆勇者エリア -->
     <header class="bg-slate-800 rounded-2xl p-6 border border-slate-700 shadow-xl flex flex-col sm:flex-row items-center gap-6">
       <div class="relative flex-shrink-0">
-        <!-- 修正：勇者画像エリア（添付画像に変更） -->
-        <div class="w-20 h-20 bg-amber-500/10 border-2 border-amber-400 rounded-2xl flex items-center justify-center p-1 shadow-lg shadow-amber-500/10 animate-pulse overflow-hidden">
-          <img src="image_2.png" alt="勇者" class="h-full w-auto object-contain">
+        <!-- 勇者画像エリア（画像読込失敗時は自動で絵文字にフォールバック） -->
+        <div class="w-20 h-20 bg-amber-500/10 border-2 border-amber-400 rounded-2xl flex items-center justify-center p-1 shadow-lg shadow-amber-500/10 animate-pulse overflow-hidden relative">
+          <img src="image_2.png" alt="勇者" class="h-full w-auto object-contain" onerror="this.style.display='none'; document.getElementById('fallback-hero').style.display='flex';">
+          <span id="fallback-hero" class="text-4xl absolute inset-0 items-center justify-center" style="display:none;">🦸‍♂️</span>
         </div>
         <span class="absolute -bottom-2 -right-2 bg-amber-500 text-slate-950 font-extrabold text-xs px-2.5 py-0.5 rounded-full shadow">
           Lv.<span id="player-level">1</span>
@@ -201,7 +202,7 @@
 
     const HERO_QUOTES = [
       "「勇者よ、今日も経験値を積み上げよう！」",
-      "("本業も回復もしっかりこなせばレベルが上がるぞ！」",
+      "「本業も回復もしっかりこなせばレベルが上がるぞ！」",
       "「運動（STR）を少しやって気分転換しないか？」",
       "「継続こそが最大の武器だ！」"
     ];
@@ -379,7 +380,6 @@
         const startDateStr = document.getElementById('custom-start-date').value || formatDate(today);
         const endDateStr = document.getElementById('custom-end-date').value || formatDate(today);
         
-        // 修正：開始日から終了日までの全日数を生成する
         const startDate = new Date(startDateStr);
         const endDate = new Date(endDateStr);
         const dates = [];
