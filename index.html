@@ -15,9 +15,9 @@
     <!-- ヘッダー＆勇者エリア -->
     <header class="bg-slate-800 rounded-2xl p-6 border border-slate-700 shadow-xl flex flex-col sm:flex-row items-center gap-6">
       <div class="relative flex-shrink-0">
-        <!-- ドット絵勇者アイコン -->
+        <!-- 勇者人物アイコン -->
         <div class="w-20 h-20 bg-amber-500/20 border-2 border-amber-400 rounded-2xl flex items-center justify-center text-4xl shadow-lg shadow-amber-500/20 animate-pulse">
-          ⚔️
+          🦸‍♂️
         </div>
         <span class="absolute -bottom-2 -right-2 bg-amber-500 text-slate-950 font-extrabold text-xs px-2.5 py-0.5 rounded-full shadow">
           Lv.<span id="player-level">1</span>
@@ -28,7 +28,6 @@
           <p id="hero-quote" class="text-amber-300 text-sm font-bold">「勇者よ、今日の経験値を積み上げよう！」</p>
         </div>
         <h1 class="text-2xl font-black tracking-wide text-white">プレイヤーレベル: <span id="player-level-text" class="text-amber-400">1</span></h1>
-        <p class="text-xs text-slate-400 mt-1">※全5スキルの平均レベルでレベルアップ</p>
       </div>
     </header>
 
@@ -43,8 +42,8 @@
           </h2>
           <div class="flex gap-2 mb-4">
             <select id="timer-category" class="bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-400 flex-1">
-              <option value="study">勉強 (INT) [+1.0 EXP/分]</option>
-              <option value="workout">運動 (STR) [+1.5 EXP/分]</option>
+              <option value="study">勉強 (INT)</option>
+              <option value="workout">運動 (STR)</option>
             </select>
           </div>
           <div class="text-center py-4 bg-slate-900/60 rounded-xl border border-slate-700/50 mb-4">
@@ -52,7 +51,7 @@
           </div>
         </div>
         <div class="flex gap-3">
-          <button id="btn-start" onclick="toggleTimer()" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-xl transition">開始</button>
+          <button id="btn-start" onclick="toggleTimer()" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-xl transition cursor-pointer">開始</button>
           <button id="btn-save-timer" onclick="saveTimerLog()" disabled class="flex-1 bg-slate-700 text-slate-400 font-bold py-2.5 rounded-xl transition cursor-not-allowed">本日分として保存</button>
         </div>
       </div>
@@ -75,32 +74,518 @@
           <!-- 入力フォーム -->
           <form id="manual-form" class="grid grid-cols-2 gap-2 text-xs">
             <div>
-              <label class="text-slate-400">勉強 INT (+1.0/分):</label>
+              <label class="text-slate-400">勉強 (INT):</label>
               <input type="number" id="input-study" min="0" placeholder="分" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-white">
             </div>
             <div>
-              <label class="text-slate-400">運動 STR (+1.5/分):</label>
+              <label class="text-slate-400">運動 (STR):</label>
               <input type="number" id="input-workout" min="0" placeholder="分" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-white">
             </div>
             <div>
-              <label class="text-slate-400">本業 MAIN (+0.5/分):</label>
+              <label class="text-slate-400">本業 (MAIN):</label>
               <input type="number" id="input-main" min="0" placeholder="分" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-white">
             </div>
             <div>
-              <label class="text-slate-400">副業 SIDE (+1.0/分):</label>
+              <label class="text-slate-400">副業 (SIDE):</label>
               <input type="number" id="input-side" min="0" placeholder="分" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-white">
             </div>
             <div>
-              <label class="text-slate-400">睡眠・休息 REC (+0.5/分):</label>
+              <label class="text-slate-400">睡眠・休息 (REC):</label>
               <input type="number" id="input-rec" min="0" placeholder="分" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-white">
             </div>
             <div>
-              <label class="text-slate-400">交際 (ステータス影響なし):</label>
+              <label class="text-slate-400">交際 (影響なし):</label>
               <input type="number" id="input-social" min="0" placeholder="分" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-white">
             </div>
             <div class="col-span-2">
-              <label class="text-rose-400 font-semibold">悪い娯楽・SNS (ペナルティ -2.0/分):</label>
+              <label class="text-rose-400 font-semibold">悪い娯楽・SNS (ペナルティ):</label>
               <input type="number" id="input-penalty" min="0" placeholder="分" class="w-full bg-slate-900 border border-rose-900/50 rounded p-1.5 text-white">
             </div>
           </form>
         </div>
+
+        <!-- 復活した保存ボタン -->
+        <button onclick="saveManualLogs()" class="w-full mt-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2.5 rounded-xl transition cursor-pointer">
+          指定した日付で保存・更新
+        </button>
+      </div>
+
+    </div>
+
+    <!-- ５つのステータス詳細エリア -->
+    <section class="bg-slate-800 rounded-2xl p-5 border border-slate-700 shadow-lg">
+      <h3 class="text-md font-bold text-amber-400 mb-4 flex items-center gap-2">
+        <span>📊</span> 5大ステータス詳細（レベル ＆ 累計EXP）
+      </h3>
+      <div id="status-details-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+        <!-- JSで動的生成 -->
+      </div>
+    </section>
+
+    <!-- ダッシュボード：期間フィルター ＆ グラフ分析 -->
+    <section class="bg-slate-800 rounded-2xl p-5 border border-slate-700 shadow-lg space-y-4">
+      
+      <!-- 最上部：期間選択フィルター -->
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-700 pb-3">
+        <h3 class="text-md font-bold text-slate-200 flex items-center gap-2">
+          <span>📈</span> ダッシュボード分析
+        </h3>
+        
+        <!-- 期間切替タブ -->
+        <div class="flex flex-wrap items-center gap-1 bg-slate-900 p-1 rounded-xl border border-slate-700 text-xs">
+          <button id="tab-today" onclick="changePeriodTab('today')" class="px-3 py-1.5 rounded-lg font-bold transition bg-amber-500 text-slate-950 cursor-pointer">1日</button>
+          <button id="tab-week" onclick="changePeriodTab('week')" class="px-3 py-1.5 rounded-lg font-bold transition text-slate-400 hover:text-white cursor-pointer">今週</button>
+          <button id="tab-month" onclick="changePeriodTab('month')" class="px-3 py-1.5 rounded-lg font-bold transition text-slate-400 hover:text-white cursor-pointer">今月</button>
+          <button id="tab-custom" onclick="changePeriodTab('custom')" class="px-3 py-1.5 rounded-lg font-bold transition text-slate-400 hover:text-white cursor-pointer">期間指定</button>
+        </div>
+      </div>
+
+      <!-- カスタム日付指定フォーム（タブ選択時のみ表示） -->
+      <div id="custom-date-picker" class="hidden flex items-center gap-2 bg-slate-900/60 p-3 rounded-xl border border-slate-700 text-xs">
+        <label class="text-slate-400">開始:</label>
+        <input type="date" id="custom-start-date" onchange="renderCharts()" class="bg-slate-800 border border-slate-600 rounded px-2 py-1 text-white">
+        <label class="text-slate-400">終了:</label>
+        <input type="date" id="custom-end-date" onchange="renderCharts()" class="bg-slate-800 border border-slate-600 rounded px-2 py-1 text-white">
+      </div>
+
+      <!-- グラフ群 -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
+        <!-- レーダーチャート（5角形） -->
+        <div class="flex flex-col items-center justify-center">
+          <p class="text-xs text-amber-400 font-bold mb-2">5角形パラメータチャート</p>
+          <div class="w-full aspect-square max-w-[240px]">
+            <canvas id="radarChart"></canvas>
+          </div>
+        </div>
+
+        <!-- 積み上げ棒グラフ ＆ 円グラフ -->
+        <div class="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <p class="text-xs text-slate-400 text-center mb-1">行動時間の積み上げ推移 (h)</p>
+            <canvas id="barChart" class="max-h-48"></canvas>
+          </div>
+          <div>
+            <p class="text-xs text-slate-400 text-center mb-1">24時間時間配分シェア (%)</p>
+            <canvas id="pieChart" class="max-h-48"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 称号・実績（トロフィー）一覧 -->
+    <section class="bg-slate-800 rounded-2xl p-5 border border-slate-700 shadow-lg">
+      <h3 class="text-md font-bold text-amber-400 mb-4 flex items-center gap-2">
+        <span>🏆</span> 獲得称号・実績リスト
+      </h3>
+      <div id="trophy-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+        <!-- JSで動的生成 -->
+      </div>
+    </section>
+
+  </div>
+
+  <script>
+    // --- 状態管理 ＆ 倍率定義 ---
+    let logs = JSON.parse(localStorage.getItem('rpg_time_logs')) || [];
+    let currentTab = 'today';
+
+    const EXP_RATES = {
+      study: 1.0,     // INT
+      workout: 1.5,   // STR
+      main: 0.5,      // MAIN (本業)
+      side: 1.0,      // SIDE (副業)
+      rec: 0.5,       // REC (回復)
+      social: 0,      // ステータス影響なし
+      penalty: -2.0   // ペナルティ
+    };
+
+    const HERO_QUOTES = [
+      "「勇者よ、今日も経験値を積み上げよう！」",
+      "「本業も回復もしっかりこなせばレベルが上がるぞ！」",
+      "「運動（STR）を少しやって気分転換しないか？」",
+      "「継続こそが最大の武器だ！」"
+    ];
+
+    // --- 累計EXP・スキルレベル計算 ---
+    function getCategoryTotalEXP(category) {
+      return logs.filter(l => l.category === category).reduce((sum, l) => {
+        const rate = EXP_RATES[category] || 0;
+        return sum + (l.minutes * rate);
+      }, 0);
+    }
+
+    function calcSkillLevel(exp) {
+      if (!exp || exp <= 0) return 1;
+      return Math.floor((1 + Math.sqrt(1 + (8 * exp) / 100)) / 2);
+    }
+
+    function getReqEXPForLevel(level) {
+      if (level <= 1) return 0;
+      return ((level - 1) * level / 2) * 100;
+    }
+
+    function getSkillLevels() {
+      const expInt = getCategoryTotalEXP('study');
+      const expMain = getCategoryTotalEXP('main');
+      const expSide = getCategoryTotalEXP('side');
+      const expStr = getCategoryTotalEXP('workout');
+      const expRec = getCategoryTotalEXP('rec');
+
+      return {
+        INT: { lv: calcSkillLevel(expInt), exp: Math.max(0, expInt) },
+        MAIN: { lv: calcSkillLevel(expMain), exp: Math.max(0, expMain) },
+        SIDE: { lv: calcSkillLevel(expSide), exp: Math.max(0, expSide) },
+        STR: { lv: calcSkillLevel(expStr), exp: Math.max(0, expStr) },
+        REC: { lv: calcSkillLevel(expRec), exp: Math.max(0, expRec) }
+      };
+    }
+
+    function updatePlayerLevel() {
+      const lvs = getSkillLevels();
+      const avgLevel = Math.floor((lvs.INT.lv + lvs.MAIN.lv + lvs.SIDE.lv + lvs.STR.lv + lvs.REC.lv) / 5);
+      
+      const elLv = document.getElementById('player-level');
+      const elLvText = document.getElementById('player-level-text');
+      if (elLv) elLv.innerText = avgLevel;
+      if (elLvText) elLvText.innerText = avgLevel;
+
+      renderStatusDetails();
+      renderTrophies(avgLevel);
+    }
+
+    // --- ５つのステータス詳細カード描画 ---
+    function renderStatusDetails() {
+      const lvs = getSkillLevels();
+      const stats = [
+        { key: 'INT', name: '勉強 (INT)', icon: '📚', data: lvs.INT },
+        { key: 'MAIN', name: '本業 (MAIN)', icon: '💼', data: lvs.MAIN },
+        { key: 'SIDE', name: '副業 (SIDE)', icon: '🚀', data: lvs.SIDE },
+        { key: 'STR', name: '運動 (STR)', icon: '⚔️', data: lvs.STR },
+        { key: 'REC', name: '回復 (REC)', icon: '🛌', data: lvs.REC }
+      ];
+
+      const container = document.getElementById('status-details-container');
+      if (!container) return;
+
+      container.innerHTML = stats.map(s => {
+        const curLv = s.data.lv;
+        const curExp = Math.round(s.data.exp);
+        const curLevelReq = getReqEXPForLevel(curLv);
+        const nextLevelReq = getReqEXPForLevel(curLv + 1);
+        
+        const expInCurrentLevel = curExp - curLevelReq;
+        const reqForNextLevel = nextLevelReq - curLevelReq;
+        const progress = Math.min(100, Math.max(0, Math.floor((expInCurrentLevel / reqForNextLevel) * 100))) || 0;
+
+        return `
+          <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-700 text-xs flex flex-col justify-between">
+            <div>
+              <div class="flex justify-between items-center mb-1">
+                <span class="font-bold text-slate-200">${s.icon} ${s.name}</span>
+                <span class="font-black text-amber-400">Lv.${curLv}</span>
+              </div>
+              <p class="text-[10px] text-slate-400 mb-2">累計: ${curExp} EXP</p>
+            </div>
+            <div>
+              <div class="w-full bg-slate-800 rounded-full h-1.5 border border-slate-700 overflow-hidden mb-1">
+                <div class="bg-amber-400 h-1.5 rounded-full" style="width: ${progress}%"></div>
+              </div>
+              <p class="text-[9px] text-slate-400 text-right">次Lvまで ${progress}%</p>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // --- 称号・実績描画 ---
+    function renderTrophies(playerLv) {
+      const lvs = getSkillLevels();
+      const trophies = [
+        { name: "初の一歩", icon: "🎖️", desc: "初めてログを保存した", unlocked: logs.length > 0 },
+        { name: "見習い勇者", icon: "🗡️", desc: "プレイヤーLv.3達成", unlocked: playerLv >= 3 },
+        { name: "熟練冒険者", icon: "👑", desc: "プレイヤーLv.10達成", unlocked: playerLv >= 10 },
+        { name: "賢者", icon: "📚", desc: "INT(勉強) Lv.5達成", unlocked: lvs.INT.lv >= 5 },
+        { name: "鉄人", icon: "💪", desc: "STR(運動) Lv.5達成", unlocked: lvs.STR.lv >= 5 },
+        { name: "プロフェッショナル", icon: "💼", desc: "MAIN(本業) Lv.5達成", unlocked: lvs.MAIN.lv >= 5 },
+        { name: "挑戦者", icon: "🚀", desc: "SIDE(副業) Lv.5達成", unlocked: lvs.SIDE.lv >= 5 },
+        { name: "快眠マスター", icon: "🛌", desc: "REC(回復) Lv.5達成", unlocked: lvs.REC.lv >= 5 }
+      ];
+
+      const container = document.getElementById('trophy-container');
+      if (!container) return;
+
+      container.innerHTML = trophies.map(t => `
+        <div class="p-3 rounded-xl border text-xs flex items-center gap-3 ${t.unlocked ? 'bg-slate-700/60 border-amber-500/50 text-slate-200' : 'bg-slate-900/40 border-slate-800 text-slate-600'}">
+          <div class="text-2xl ${t.unlocked ? '' : 'opacity-30'}">${t.icon}</div>
+          <div>
+            <p class="font-bold ${t.unlocked ? 'text-amber-300' : 'text-slate-500'}">${t.unlocked ? '' : '🔒 '}${t.name}</p>
+            <p class="text-[10px] ${t.unlocked ? 'text-slate-300' : 'text-slate-600'}">${t.desc}</p>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // --- 期間切り替えタブ処理 ---
+    function changePeriodTab(tab) {
+      currentTab = tab;
+      ['today', 'week', 'month', 'custom'].forEach(t => {
+        const btn = document.getElementById(`tab-${t}`);
+        if (btn) {
+          if (t === tab) {
+            btn.className = 'px-3 py-1.5 rounded-lg font-bold transition bg-amber-500 text-slate-950 cursor-pointer';
+          } else {
+            btn.className = 'px-3 py-1.5 rounded-lg font-bold transition text-slate-400 hover:text-white cursor-pointer';
+          }
+        }
+      });
+
+      const customPicker = document.getElementById('custom-date-picker');
+      if (customPicker) {
+        if (tab === 'custom') {
+          customPicker.classList.remove('hidden');
+        } else {
+          customPicker.classList.add('hidden');
+        }
+      }
+
+      renderCharts();
+    }
+
+    // 日付範囲取得関数
+    function getDateRange() {
+      const today = new Date();
+      const formatDate = d => d.toISOString().split('T')[0];
+
+      if (currentTab === 'today') {
+        const sel = document.getElementById('input-date').value || formatDate(today);
+        return { start: sel, end: sel, dates: [sel] };
+      } else if (currentTab === 'week') {
+        const dates = [];
+        for (let i = 6; i >= 0; i--) {
+          const d = new Date();
+          d.setDate(today.getDate() - i);
+          dates.push(formatDate(d));
+        }
+        return { start: dates[0], end: dates[6], dates: dates };
+      } else if (currentTab === 'month') {
+        const dates = [];
+        for (let i = 29; i >= 0; i--) {
+          const d = new Date();
+          d.setDate(today.getDate() - i);
+          dates.push(formatDate(d));
+        }
+        return { start: dates[0], end: dates[29], dates: dates };
+      } else if (currentTab === 'custom') {
+        const s = document.getElementById('custom-start-date').value || formatDate(today);
+        const e = document.getElementById('custom-end-date').value || formatDate(today);
+        return { start: s, end: e, dates: [s, e] };
+      }
+    }
+
+    // --- 日付変更時の既存データ読込 ---
+    function loadDateLogs() {
+      const selectedDate = document.getElementById('input-date').value;
+      const categories = ['study', 'workout', 'main', 'side', 'rec', 'social', 'penalty'];
+
+      categories.forEach(cat => {
+        const inputElem = document.getElementById(`input-${cat}`);
+        if (inputElem) {
+          const totalForCat = logs
+            .filter(l => l.date === selectedDate && l.category === cat)
+            .reduce((sum, l) => sum + l.minutes, 0);
+          inputElem.value = totalForCat > 0 ? totalForCat : '';
+        }
+      });
+
+      if (currentTab === 'today') renderCharts();
+    }
+
+    // --- ストップウォッチ機能 ---
+    let timerInterval = null;
+    let timerSeconds = 0;
+
+    function toggleTimer() {
+      const btn = document.getElementById('btn-start');
+      const saveBtn = document.getElementById('btn-save-timer');
+      if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+        btn.innerText = '再開';
+        btn.classList.replace('bg-rose-600', 'bg-emerald-600');
+        saveBtn.disabled = false;
+        saveBtn.classList.replace('bg-slate-700', 'bg-amber-600');
+        saveBtn.classList.replace('text-slate-400', 'text-white');
+        saveBtn.classList.remove('cursor-not-allowed');
+      } else {
+        timerInterval = setInterval(() => {
+          timerSeconds++;
+          const h = String(Math.floor(timerSeconds / 3600)).padStart(2, '0');
+          const m = String(Math.floor((timerSeconds % 3600) / 60)).padStart(2, '0');
+          const s = String(timerSeconds % 60).padStart(2, '0');
+          document.getElementById('timer-display').innerText = `${h}:${m}:${s}`;
+        }, 1000);
+        btn.innerText = '一時停止';
+        btn.classList.replace('bg-emerald-600', 'bg-rose-600');
+      }
+    }
+
+    function saveTimerLog() {
+      const category = document.getElementById('timer-category').value;
+      const minutes = Math.max(1, Math.round(timerSeconds / 60));
+      const today = new Date().toISOString().split('T')[0];
+
+      logs.push({ date: today, category: category, minutes: minutes });
+      localStorage.setItem('rpg_time_logs', JSON.stringify(logs));
+
+      timerSeconds = 0;
+      document.getElementById('timer-display').innerText = '00:00:00';
+      document.getElementById('btn-save-timer').disabled = true;
+      document.getElementById('btn-save-timer').classList.replace('bg-amber-600', 'bg-slate-700');
+      document.getElementById('btn-start').innerText = '開始';
+
+      loadDateLogs();
+      updatePlayerLevel();
+      alert(`本日分として計測ログ（${minutes}分）を保存しました！`);
+    }
+
+    // --- 日付指定保存 ---
+    function saveManualLogs() {
+      const targetDate = document.getElementById('input-date').value;
+      if (!targetDate) return alert('日付を選択してください。');
+
+      const categories = ['study', 'workout', 'main', 'side', 'rec', 'social', 'penalty'];
+      logs = logs.filter(l => l.date !== targetDate);
+
+      categories.forEach(cat => {
+        const val = parseInt(document.getElementById(`input-${cat}`).value);
+        if (val && val > 0) {
+          logs.push({ date: targetDate, category: cat, minutes: val });
+        }
+      });
+
+      localStorage.setItem('rpg_time_logs', JSON.stringify(logs));
+      renderCharts();
+      updatePlayerLevel();
+      alert(`${targetDate} の記録を保存・更新しました！`);
+    }
+
+    // --- Chart.js グラフ描画 ---
+    let radarChart, barChart, pieChart;
+
+    function renderCharts() {
+      const lvs = getSkillLevels();
+      const range = getDateRange();
+
+      // 1. レーダーチャート（5角形）
+      const ctxRadar = document.getElementById('radarChart');
+      if (ctxRadar) {
+        if (radarChart) radarChart.destroy();
+        radarChart = new Chart(ctxRadar.getContext('2d'), {
+          type: 'radar',
+          data: {
+            labels: ['INT', 'MAIN', 'SIDE', 'STR', 'REC'],
+            datasets: [{
+              data: [lvs.INT.lv, lvs.MAIN.lv, lvs.SIDE.lv, lvs.STR.lv, lvs.REC.lv],
+              backgroundColor: 'rgba(245, 158, 11, 0.25)',
+              borderColor: '#f59e0b',
+              pointBackgroundColor: '#f59e0b'
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: { r: { min: 0, ticks: { display: false }, grid: { color: '#334155' }, angleLines: { color: '#334155' } } }
+          }
+        });
+      }
+
+      // 2. 期間内のログ抽出と集計
+      const periodLogs = logs.filter(l => l.date >= range.start && l.date <= range.end);
+      const catMinutes = { study:0, workout:0, main:0, side:0, rec:0, social:0, penalty:0 };
+      periodLogs.forEach(l => { if (catMinutes[l.category] !== undefined) catMinutes[l.category] += l.minutes; });
+      
+      const dayCount = range.dates.length || 1;
+      const totalCapacityMinutes = 1440 * dayCount;
+      const loggedTotal = Object.values(catMinutes).reduce((a,b)=>a+b, 0);
+      const otherMinutes = Math.max(0, totalCapacityMinutes - loggedTotal);
+
+      // 3. シェア円グラフ
+      const ctxPie = document.getElementById('pieChart');
+      if (ctxPie) {
+        if (pieChart) pieChart.destroy();
+        pieChart = new Chart(ctxPie.getContext('2d'), {
+          type: 'doughnut',
+          data: {
+            labels: ['勉強', '運動', '本業', '副業', '回復', '交際', 'SNS', 'その他'],
+            datasets: [{
+              data: [
+                catMinutes.study, catMinutes.workout, catMinutes.main, 
+                catMinutes.side, catMinutes.rec, catMinutes.social, 
+                catMinutes.penalty, otherMinutes
+              ],
+              backgroundColor: ['#10b981', '#f97316', '#3b82f6', '#8b5cf6', '#06b6d4', '#ec4899', '#f43f5e', '#64748b']
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } }
+          }
+        });
+      }
+
+      // 4. 積み上げ棒グラフ
+      const ctxBar = document.getElementById('barChart');
+      if (ctxBar) {
+        const barLabels = range.dates.map(d => d.slice(5)); // MM-DD表示
+        const datasets = [
+          { label: '勉強', key: 'study', color: '#10b981' },
+          { label: '運動', key: 'workout', color: '#f97316' },
+          { label: '本業', key: 'main', color: '#3b82f6' },
+          { label: '副業', key: 'side', color: '#8b5cf6' },
+          { label: '回復', key: 'rec', color: '#06b6d4' }
+        ].map(item => ({
+          label: item.label,
+          backgroundColor: item.color,
+          data: range.dates.map(date => {
+            const dayLogs = logs.filter(l => l.date === date && l.category === item.key);
+            return dayLogs.reduce((sum, l) => sum + l.minutes, 0) / 60;
+          })
+        }));
+
+        if (barChart) barChart.destroy();
+        barChart = new Chart(ctxBar.getContext('2d'), {
+          type: 'bar',
+          data: { labels: barLabels, datasets: datasets },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: { x: { stacked: true }, y: { stacked: true, max: 24 } },
+            plugins: { legend: { display: false } }
+          }
+        });
+      }
+    }
+
+    // 初期起動処理（DOM構築完了後に安全に実行）
+    document.addEventListener('DOMContentLoaded', () => {
+      const today = new Date().toISOString().split('T')[0];
+      
+      const elInputDate = document.getElementById('input-date');
+      const elStartDate = document.getElementById('custom-start-date');
+      const elEndDate = document.getElementById('custom-end-date');
+      const elHeroQuote = document.getElementById('hero-quote');
+
+      if (elInputDate) elInputDate.value = today;
+      if (elStartDate) elStartDate.value = today;
+      if (elEndDate) elEndDate.value = today;
+      if (elHeroQuote) elHeroQuote.innerText = HERO_QUOTES[Math.floor(Math.random() * HERO_QUOTES.length)];
+
+      loadDateLogs();
+      updatePlayerLevel();
+      renderCharts();
+    });
+  </script>
+</body>
+</html>
