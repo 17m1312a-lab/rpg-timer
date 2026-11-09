@@ -218,17 +218,17 @@
       "「肉体を鍛えよ。強靭な意志は、強靭な肉体に宿る。」",
       "「小さな一歩が、未来の自由を築く。」",
       "「睡眠を削るな。最高の回復こそが、明日への最大の攻撃力だ。」",
-      "「Don't show your effort to others.」",
+      ""Don't show your effort to others."",
       "「凡事徹底。当たり前の毎日の継続こそが最大の武器である。」",
       "「焦る必要はない。ただ、今日やるべきことをこなせばいい。」",
       "「失敗は経験値。すべての敗北は、次への勝利の布石だ。」",
       "「選んだ道を正解にするのは、これからの君の行動力だけだ。」",
-      "「Don't talk about the current situation.」",
+      ""Don't talk about the current situation."",
       "「タイマーのスタートボタンを押す、その瞬間から奇跡は始まる。」",
       "「楽な道を選ぶな。痛みのないところに本当の栄光はない。」",
       "「時間を支配する者が、人生のすべてを制覇する。」",
       "「どんなに忙しくても、5分の前進は0分より圧倒的に尊い。」",
-      "「Anger is caused by lack of learning.」",
+      ""Anger is caused by lack of learning."",
       "「目先の誘惑を断ち切った夜、君のレベルは一段階跳ね上がる。」",
       "「記録をつける。それだけで、君は自分の人生の主人公になれる。」",
       "「試練は君を壊すためではなく、より強靭にするために訪れる。」",
@@ -256,7 +256,6 @@
         
         let exp = minutesForCat * rate;
         
-        // 悪い娯楽5分ごとに、各ステータスから -1（Math.floorで切り捨てて常に整数に）
         const penaltyDeduction = Math.floor(day.penalty / 5);
         exp -= penaltyDeduction;
         
@@ -328,7 +327,6 @@
         const reqForNextLevel = nextLevelReq - curLevelReq;
         const progress = Math.min(100, Math.max(0, Math.floor((expInCurrentLevel / reqForNextLevel) * 100))) || 0;
         
-        // 次のレベルまでの残りEXP計算（整数表示）
         const remainingExp = Math.max(0, nextLevelReq - curExp);
 
         return `
@@ -606,47 +604,107 @@
       if (currentTab === 'today') renderCharts();
     }
 
-    // --- ストップウォッチ機能 ---
+    // --- ストップウォッチ機能（バックグラウンド＆スリープ防止対応版） ---
     let timerInterval = null;
-    let timerSeconds = 0;
+    let startTime = 0;          // 計測開始時のタイムスタンプ
+    let elapsedSeconds = 0;     // これまでの蓄積秒数
+    let isRunning = false;
+    let wakeLock = null;        // Wake Lock APIのインスタンス
+
+    // 画面スリープを防止する非同期関数
+    async function requestWakeLock() {
+      if ('wakeLock' in navigator) {
+        try {
+          wakeLock = await navigator.wakeLock.request('screen');
+        } catch (err) {
+          console.error(`Wake Lock 取得失敗: ${err.name}, ${err.message}`);
+        }
+      }
+    }
+
+    // スリープ防止を解除する関数
+    function releaseWakeLock() {
+      if (wakeLock !== null) {
+        wakeLock.release().then(() => {
+          wakeLock = null;
+        });
+      }
+    }
 
     function toggleTimer() {
       const btn = document.getElementById('btn-start');
       const saveBtn = document.getElementById('btn-save-timer');
-      if (timerInterval) {
-        clearInterval(timerInterval);
-        timerInterval = null;
-        btn.innerText = '再開';
-        btn.classList.replace('bg-rose-600', 'bg-emerald-600');
-        saveBtn.disabled = false;
-        saveBtn.classList.replace('bg-slate-700', 'bg-amber-600');
-        saveBtn.classList.replace('text-slate-400', 'text-white');
-        saveBtn.classList.remove('cursor-not-allowed');
-      } else {
+      const categorySelect = document.getElementById('timer-category');
+
+      if (!isRunning) {
+        // --- 開始 / 再開 ---
+        isRunning = true;
+        startTime = Date.now();
+        categorySelect.disabled = true; // 計測中のカテゴリ変更をロック
+
+        // スリープ防止を有効化
+        requestWakeLock();
+
         timerInterval = setInterval(() => {
-          timerSeconds++;
-          const h = String(Math.floor(timerSeconds / 3600)).padStart(2, '0');
-          const m = String(Math.floor((timerSeconds % 3600) / 60)).padStart(2, '0');
-          const s = String(timerSeconds % 60).padStart(2, '0');
+          // 現在時刻と開始時刻の差分から正確な経過秒数を計算（バックグラウンド・タブ切替対策）
+          const now = Date.now();
+          const currentElapsed = elapsedSeconds + Math.floor((now - startTime) / 1000);
+
+          const h = String(Math.floor(currentElapsed / 3600)).padStart(2, '0');
+          const m = String(Math.floor((currentElapsed % 3600) / 60)).padStart(2, '0');
+          const s = String(currentElapsed % 60).padStart(2, '0');
           document.getElementById('timer-display').innerText = `${h}:${m}:${s}`;
-        }, 1000);
+        }, 250); // 0.25秒間隔で高頻度チェックしズレを防止
+
         btn.innerText = '一時停止';
         btn.classList.replace('bg-emerald-600', 'bg-rose-600');
+      } else {
+        // --- 一時停止 ---
+        isRunning = false;
+        clearInterval(timerInterval);
+        timerInterval = null;
+
+        // 経過秒数を確定して蓄積
+        const now = Date.now();
+        elapsedSeconds += Math.floor((now - startTime) / 1000);
+
+        // スリープ防止を解除
+        releaseWakeLock();
+
+        btn.innerText = '再開';
+        btn.classList.replace('bg-rose-600', 'bg-emerald-600');
+        
+        if (elapsedSeconds > 0) {
+          saveBtn.disabled = false;
+          saveBtn.classList.replace('bg-slate-700', 'bg-amber-600');
+          saveBtn.classList.replace('text-slate-400', 'text-white');
+          saveBtn.classList.remove('cursor-not-allowed');
+        }
       }
     }
 
     function saveTimerLog() {
+      // 稼働中の場合は一度止める
+      if (isRunning) {
+        toggleTimer();
+      }
+
       const category = document.getElementById('timer-category').value;
-      const minutes = Math.max(1, Math.round(timerSeconds / 60));
+      const minutes = Math.max(1, Math.round(elapsedSeconds / 60));
       const today = new Date().toISOString().split('T')[0];
 
       logs.push({ date: today, category: category, minutes: minutes });
       localStorage.setItem('rpg_time_logs', JSON.stringify(logs));
 
-      timerSeconds = 0;
+      // リセット処理
+      elapsedSeconds = 0;
+      startTime = 0;
       document.getElementById('timer-display').innerText = '00:00:00';
+      document.getElementById('timer-category').disabled = false; // カテゴリロック解除
       document.getElementById('btn-save-timer').disabled = true;
       document.getElementById('btn-save-timer').classList.replace('bg-amber-600', 'bg-slate-700');
+      document.getElementById('btn-save-timer').classList.replace('text-white', 'text-slate-400');
+      document.getElementById('btn-save-timer').classList.add('cursor-not-allowed');
       document.getElementById('btn-start').innerText = '開始';
 
       loadDateLogs();
