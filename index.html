@@ -197,7 +197,7 @@
       side: 1.0,      // SIDE (副業)
       rec: 0.5,       // REC (回復)
       social: 0,      // ステータス影響なし
-      penalty: -2.0   // ペナルティ
+      penalty: 0      // ペナルティは日数ごとの減算ロジックで処理
     };
 
     // 勇者の名言・金言30選
@@ -234,12 +234,35 @@
       "「信じろ。毎日の継続は、いつか必ず伝説の景色を見せてくれる。」"
     ];
 
-    // --- 累計EXP・スキルレベル計算 ---
+    // --- 累計EXP・スキルレベル計算（5分以上の悪い娯楽で各ステータスから-1 EXP） ---
     function getCategoryTotalEXP(category) {
-      return logs.filter(l => l.category === category).reduce((sum, l) => {
+      // 日付ごとに各カテゴリの分数を集計
+      const dateMap = {};
+      logs.forEach(l => {
+        if (!dateMap[l.date]) {
+          dateMap[l.date] = { study: 0, workout: 0, main: 0, side: 0, rec: 0, penalty: 0 };
+        }
+        if (dateMap[l.date][l.category] !== undefined) {
+          dateMap[l.date][l.category] += l.minutes;
+        }
+      });
+
+      let totalExp = 0;
+      for (let date in dateMap) {
+        const day = dateMap[date];
+        const minutesForCat = day[category] || 0;
         const rate = EXP_RATES[category] || 0;
-        return sum + (l.minutes * rate);
-      }, 0);
+        
+        let exp = minutesForCat * rate;
+        
+        // 5分以上の悪い娯楽（penalty）があった日は、各ステータスから -1 EXP
+        if (day.penalty >= 5 && exp > 0) {
+          exp -= 1;
+        }
+        
+        totalExp += Math.max(0, exp);
+      }
+      return totalExp;
     }
 
     function calcSkillLevel(exp) {
@@ -359,7 +382,7 @@
       return Object.values(dateMap).some(mins => mins >= targetMinutes);
     }
 
-  // --- 100個の称号・実績描画（No.001〜No.100 統一デザイン版） ---
+    // --- 100個の称号・実績描画（No.001〜No.100 統一デザイン版） ---
     function renderTrophies(playerLv) {
       const lvs = getSkillLevels();
       
@@ -469,11 +492,11 @@
         { name: "No.096：継続の鬼", icon: "🔥", desc: "勉強時間1時間以上を30日連続達成", unlocked: checkConsecutiveDays('study', 60, 30) },
         { name: "No.097：誘惑の罠", icon: "🍩", desc: "悪い娯楽時間が600分以上", unlocked: penaltyMinutes >= 600 },
         { name: "No.098：堕落の王", icon: "🛋️", desc: "悪い娯楽時間が6000分以上", unlocked: penaltyMinutes >= 6000 },
-        { name: "No.099：怠惰の極み", icon: "💤", desc: "1日の睡眠時間が1000分以上", unlocked: checkDailyRecExceed(1000) },
+        { name: "No.099：怠惰の極み", icon: "💤", desc: "1 ದಿನの睡眠時間が1000分以上", unlocked: checkDailyRecExceed(1000) },
         { name: "No.100：真の全制覇者", icon: "🏆", desc: "全ての称号をアンロックした", unlocked: false }
       ];
 
-     // 「真の全制覇者」以外の全実績が解放されたか自動計算
+      // 「真の全制覇者」以外の全実績が解放されたか自動計算
       const baseTrophies = allTrophies.slice(0, allTrophies.length - 1);
       const allUnlocked = baseTrophies.every(t => t.unlocked);
       allTrophies[allTrophies.length - 1].unlocked = allUnlocked;
