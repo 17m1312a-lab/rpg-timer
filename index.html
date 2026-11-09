@@ -197,7 +197,7 @@
       side: 1.0,      // SIDE (副業)
       rec: 0.5,       // REC (回復)
       social: 0,      // ステータス影響なし
-      penalty: 0      // ペナルティは日数ごとの減算ロジックで処理
+      penalty: 0      // ペナルティは各ステータスからの減算ロジックで処理
     };
 
     // 勇者の名言・金言30選
@@ -234,9 +234,8 @@
       "「信じろ。毎日の継続は、いつか必ず伝説の景色を見せてくれる。」"
     ];
 
-    // --- 累計EXP・スキルレベル計算（5分以上の悪い娯楽で各ステータスから-1 EXP） ---
+    // --- 累計EXP・スキルレベル計算（悪い娯楽5分ごとに各ステータスから-1：切り捨て整数化） ---
     function getCategoryTotalEXP(category) {
-      // 日付ごとに各カテゴリの分数を集計
       const dateMap = {};
       logs.forEach(l => {
         if (!dateMap[l.date]) {
@@ -255,12 +254,11 @@
         
         let exp = minutesForCat * rate;
         
-        // 5分以上の悪い娯楽（penalty）があった日は、各ステータスから -1 EXP
-        if (day.penalty >= 5 && exp > 0) {
-          exp -= 1;
-        }
+        // 悪い娯楽5分ごとに、各ステータスから -1（Math.floorで切り捨てて常に整数に）
+        const penaltyDeduction = Math.floor(day.penalty / 5);
+        exp -= penaltyDeduction;
         
-        totalExp += Math.max(0, exp);
+        totalExp += Math.max(0, Math.floor(exp));
       }
       return totalExp;
     }
@@ -272,7 +270,7 @@
 
     function getReqEXPForLevel(level) {
       if (level <= 1) return 0;
-      return ((level - 1) * level / 2) * 100;
+      return Math.floor(((level - 1) * level / 2) * 100);
     }
 
     function getSkillLevels() {
@@ -283,11 +281,11 @@
       const expRec = getCategoryTotalEXP('rec');
 
       return {
-        INT: { lv: calcSkillLevel(expInt), exp: Math.max(0, expInt) },
-        MAIN: { lv: calcSkillLevel(expMain), exp: Math.max(0, expMain) },
-        SIDE: { lv: calcSkillLevel(expSide), exp: Math.max(0, expSide) },
-        STR: { lv: calcSkillLevel(expStr), exp: Math.max(0, expStr) },
-        REC: { lv: calcSkillLevel(expRec), exp: Math.max(0, expRec) }
+        INT: { lv: calcSkillLevel(expInt), exp: Math.max(0, Math.floor(expInt)) },
+        MAIN: { lv: calcSkillLevel(expMain), exp: Math.max(0, Math.floor(expMain)) },
+        SIDE: { lv: calcSkillLevel(expSide), exp: Math.max(0, Math.floor(expSide)) },
+        STR: { lv: calcSkillLevel(expStr), exp: Math.max(0, Math.floor(expStr)) },
+        REC: { lv: calcSkillLevel(expRec), exp: Math.max(0, Math.floor(expRec)) }
       };
     }
 
@@ -328,7 +326,7 @@
         const reqForNextLevel = nextLevelReq - curLevelReq;
         const progress = Math.min(100, Math.max(0, Math.floor((expInCurrentLevel / reqForNextLevel) * 100))) || 0;
         
-        // 次のレベルまでの残りEXP計算
+        // 次のレベルまでの残りEXP計算（整数表示）
         const remainingExp = Math.max(0, nextLevelReq - curExp);
 
         return `
@@ -492,7 +490,7 @@
         { name: "No.096：継続の鬼", icon: "🔥", desc: "勉強時間1時間以上を30日連続達成", unlocked: checkConsecutiveDays('study', 60, 30) },
         { name: "No.097：誘惑の罠", icon: "🍩", desc: "悪い娯楽時間が600分以上", unlocked: penaltyMinutes >= 600 },
         { name: "No.098：堕落の王", icon: "🛋️", desc: "悪い娯楽時間が6000分以上", unlocked: penaltyMinutes >= 6000 },
-        { name: "No.099：怠惰の極み", icon: "💤", desc: "1 ದಿನの睡眠時間が1000分以上", unlocked: checkDailyRecExceed(1000) },
+        { name: "No.099：怠惰の極み", icon: "💤", desc: "1日の睡眠時間が1000分以上", unlocked: checkDailyRecExceed(1000) },
         { name: "No.100：真の全制覇者", icon: "🏆", desc: "全ての称号をアンロックした", unlocked: false }
       ];
 
@@ -521,7 +519,7 @@
         </div>
       `).join('');
     }
-    
+
     // --- 期間切り替えタブ処理 ---
     function changePeriodTab(tab) {
       currentTab = tab;
